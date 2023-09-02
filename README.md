@@ -28,7 +28,7 @@ SmartHomeDevices is a project implementing ESP32 smart devices for [JavaHomeServ
     ```
 
 # OTA updating
-Once you flash ESP32 with this software you will be able to reflash it via Wi-Fi. Refer to Arduino ESP32 BasicOTA. 
+Once you flash ESP32 with this software you will be able to reflash it via Wi-Fi. Refer to [PlatofrmIO ESP32 BasicOTA](https://github.com/JakubAndrysek/BasicOTA-ESP32-library/blob/master/README.md). 
 
 ## List of available devices
 * [HomeBasicDevice](HomeBasicDevice)
