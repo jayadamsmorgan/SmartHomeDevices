@@ -1,13 +1,7 @@
-#include "USBCDC.h"
 #include "WiFi.h"
-#include "WiFiType.h"
-#include "esp32-hal-gpio.h"
-#include "esp32-hal.h"
-#include "freertos/portmacro.h"
 #include "EEPROM.h"
 #include "AsyncUDP.h"
 #include "ArduinoOTA.h"
-#include "ESPmDNS.h"
 
 // Uncomment DEBUG to have debug output to Serial
 // #define DEBUG
