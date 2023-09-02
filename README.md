@@ -3,7 +3,7 @@ SmartHomeDevices is a project implementing ESP32 smart devices for [JavaHomeServ
 
 
 
-# Installation
+## Installation
 
 ### Arduino IDE
 1. Choose the Smart Device you need, you can see their own custom features down below. Choose the one that fits you the most.
@@ -27,7 +27,7 @@ SmartHomeDevices is a project implementing ESP32 smart devices for [JavaHomeServ
     pio run -t upload
     ```
 
-# OTA updating
+## OTA updating
 Once you flash ESP32 with this software you will be able to reflash it via Wi-Fi. Refer to [PlatofrmIO ESP32 BasicOTA](https://github.com/JakubAndrysek/BasicOTA-ESP32-library/blob/master/README.md). 
 
 ## List of available devices
