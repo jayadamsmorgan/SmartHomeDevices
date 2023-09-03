@@ -32,6 +32,7 @@ Once you flash ESP32 with this software you will be able to reflash it via Wi-Fi
 
 ## List of available devices
 * [HomeBasicDevice](HomeBasicDevice)
+* [HomeLightDevice](HomeLightDevice)
 
 
 ## TODO
