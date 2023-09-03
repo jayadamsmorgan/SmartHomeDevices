@@ -10,3 +10,4 @@ Basic Light Device realization with brightness functionality
 ## TODO
 
 * Add basic realization schematics
+* Soft turning on/off
