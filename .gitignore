@@ -3,3 +3,4 @@
 .gcc-flags.json
 compile_commands.json
 .cache
+.DS_Store
