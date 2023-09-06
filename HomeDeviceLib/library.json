@@ -1,0 +1,17 @@
+{
+  "name": "HomeDeviceLib",
+  "version": "0.0.1",
+  "description": "Library for SmartHomeDevices project.",
+  "keywords": "iot, home, automation",
+  "authors": [
+    {
+      "name": "German Berdnikov",
+      "email": "berdnikov1802@gmail.com",
+      "url": "https://github.com/jayadamsmorgan"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "frameworks": "arduino",
+  "platforms": "esp32"
+}
