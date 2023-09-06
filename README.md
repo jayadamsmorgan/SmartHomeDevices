@@ -5,13 +5,6 @@ SmartHomeDevices is a project implementing ESP32 smart devices for [JavaHomeServ
 
 ## Installation
 
-### Arduino IDE
-1. Choose the Smart Device you need, you can see their own custom features down below. Choose the one that fits you the most.
-2. Open the chosen '.cpp' file in Arduino IDE. If you have trouble opening it, change the file extension to '.ino'.
-3. Choose the ESP32 board you have.
-4. Modify predefined configuration values, such as SSID and PASS for your home network, GPIO pins, etc. You can also modify OTA settings, delays and other predefined values if you need to.
-5. Upload sketch to your ESP32.
-
 ### PlatformIO Core CLI
 1. Install [PlatformIO Core CLI](https://docs.platformio.org/en/stable/core/index.html)
 2. Choose the Smart Device you want, you can see list of devices and their custom features down below. Choose the one that fits you the most.
