@@ -21,10 +21,13 @@ SmartHomeDevices is a project implementing ESP32 smart devices for [JavaHomeServ
     ```
 
 ## OTA updating
-Once you flash ESP32 with this software you will be able to reflash it via Wi-Fi.
+Once you flash ESP32 with this software you will be able to reflash it via Wi-Fi:
 
     python3 tools/espota.py -i esp-ip-or-hostname.local -a your_fancy_password -f path/to/your/firmware.bin -r
 
+Or if you have custom port:
+
+    python3 tools/espota.py -i esp-ip-or-hostname.local -p port -a your_fancy_password -f path/to/your/firmware.bin -r
 
 ## List of available devices
 * [HomeBasicDevice](Devices/HomeBasicDevice)
