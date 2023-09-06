@@ -73,7 +73,6 @@ void HomeDeviceClass::wifi_init(String ssid, String pass) {
     wifi_event_handler(event);
   });
   WiFi.begin(ssid, pass);
-  log("Cannot connect to WiFi: SSID and PASS not defined.");
   while (WiFi.status() != WL_CONNECTED) {
     vTaskDelay(500 / portTICK_PERIOD_MS);
   }
@@ -206,8 +205,7 @@ void HomeDeviceClass::ota_init(String password, int port) {
       log("Start updating " + type);
     })
     .onEnd([this]() {
-      log("OTA Update Success.");
-      isUpdating = false;
+      log("OTA Update Success. Rebooting..."); 
     })
     .onProgress([this](unsigned int progress, unsigned int total) {
       String percentage = String(progress / (total / 100));

@@ -26,6 +26,8 @@ void setup() {
 
   gpio_setup();
 
+  //HomeDevice.debug = true;
+
   HomeDevice.serial_init();
   
   HomeDevice.eeprom_init();

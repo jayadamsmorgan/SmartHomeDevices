@@ -57,7 +57,5 @@ void loop() {
   digitalWrite(OUTPUT_GPIO_PIN, HomeDevice.state.isOn ? HIGH : LOW);
 
   HomeDevice.ota_handle();
-
-  String red = HomeDevice.get_data_variable("red");
 }
 
