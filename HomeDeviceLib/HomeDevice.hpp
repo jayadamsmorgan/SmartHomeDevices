@@ -7,6 +7,7 @@
 #include "WiFi.h"
 #include "AsyncUDP.h"
 #include "EEPROM.h"
+#include "ArduinoJson.h"
 
 #define OTA_PORT_DEFAULT 3232
 #define SERIAL_BAUD_DEFAULT 115200
@@ -21,6 +22,8 @@ class HomeDeviceClass
     };
 
     bool debug = false;
+    
+    StaticJsonDocument<1024> json; 
 
     State state;
 
@@ -55,7 +58,6 @@ class HomeDeviceClass
 
     void update_EEPROM_variables(int id, bool on, String data);
     void wifi_event_handler(WiFiEvent_t event);
-    String parse_string_from_payload(String packet_string, String value);
 };
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_HOMEDEVICE_LIB)

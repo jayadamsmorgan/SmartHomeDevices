@@ -6,6 +6,7 @@
 #include "WiFi.h"
 #include "AsyncUDP.h"
 #include "EEPROM.h"
+#include "ArduinoJson.h"
 
 //#define DEBUG_SERIAL_INIT_DELAY 5000
 
@@ -40,7 +41,7 @@ void HomeDeviceClass::log(String msg) {
 void HomeDeviceClass::eeprom_init() {
   eepromClass = EEPROMClass("eeprom0");
   log("Initializing EEPROM...");
-  if(!eepromClass.begin(0x500)) {
+  if(!eepromClass.begin(512)) {
     log("Failed to initialize EEPROM. Restarting...");
     vTaskDelay(500 / portTICK_PERIOD_MS);
     ESP.restart();
@@ -92,11 +93,11 @@ void HomeDeviceClass::udp_init(int udp_port) {
 void HomeDeviceClass::send_current_state_to_server() {
   char welcome_char = OUTCOMING_WELCOME_BYTE;
   String state_string = "";
-  state_string = state_string + welcome_char + "BasicDevice";
-  state_string = state_string + ";id=" + state.id;
-  state_string = state_string + ";on=" + state.isOn;
-  state_string = state_string + ";data={" + state.data;
-  state_string = state_string + "};ipAddress=" + WiFi.localIP().toString();
+  state_string = state_string + welcome_char + "BasicDevice;{";
+  state_string = state_string + "\"id\":" + state.id;
+  state_string = state_string + ",\"on\":" + state.isOn;
+  state_string = state_string + ",\"data\":\"";
+  state_string = state_string + "\"}";
   udp.broadcast(state_string.c_str());
 }
 
@@ -106,28 +107,24 @@ void HomeDeviceClass::load_previous_state() {
   eepromClass.get(0, state);
 }
 
-// Incoming packet payload string parsing
-String HomeDeviceClass::parse_string_from_payload(String packet_string, String value) {
-  int startIndex = packet_string.indexOf(";" + value + "=");
-  if (startIndex == -1) {
-    log("Cannot parse UDP Packet: '" + value + "': no '" + value + "' param.");
-    return "";
-  }
-  startIndex = startIndex + 2 + value.length();
-  int valueEndIndex = packet_string.indexOf(";", startIndex);
-  if (valueEndIndex == -1) {
-    log("Cannot parse UDP Packet: '" + value + "': Packet syntax is wrong.");
-    return "";
-  }
-  String stringValue = packet_string.substring(startIndex, valueEndIndex);
-  if (stringValue.equals("")) {
-    log("Cannot parse UDP Packet: invalid '" + value + "' value.");
-  }
-  return stringValue;
-}
 
 String HomeDeviceClass::get_data_variable(String var) {
-  return parse_string_from_payload(state.data, var);
+  int startIndex = state.data.indexOf(";" + var + "=");
+  if (startIndex == -1) {
+    log("Cannot parse data: '" + var + "': no '" + var + "' param.");
+    return "";
+  }
+  startIndex = startIndex + 2 + var.length();
+  int valueEndIndex = state.data.indexOf(";", startIndex);
+  if (valueEndIndex == -1) {
+    log("Cannot parse data: '" + var + "': Packet syntax is wrong.");
+    return "";
+  }
+  String stringValue = state.data.substring(startIndex, valueEndIndex);
+  if (stringValue.equals("")) {
+    log("Cannot parse data: invalid '" + var + "' value.");
+  }
+  return stringValue;
 }
 
 // Parse incoming UDP packet
@@ -138,30 +135,22 @@ void HomeDeviceClass::parse_udp_packet(AsyncUDPPacket packet) {
     log("Skipping incoming packet: wrong WELCOME_BYTE.");
     return;
   }
-  // ID parsing
-  String idString = parse_string_from_payload(packet_string, "id");
-  if (idString.equals("")) {
+  packet_string = packet_string.substring(1);
+
+  DeserializationError error = deserializeJson(json, packet_string);
+
+  // Test if parsing succeeds.
+  if (error) {
+    log("Deserialization failed.");
     return;
   }
-  int id = idString.toInt();
-  if (id == 0) {
-    log("Cannot parse UDP Packet: 'id' is not an Integer value.");
-    return;
-  }
-  // ON parsing 
-  String onString = parse_string_from_payload(packet_string, "on");
-  if (onString.equals("")) {
-    return;
-  }
-  if (!onString.equalsIgnoreCase("true") && !onString.equalsIgnoreCase("false")) {
-    log("Cannot parse UDP Packet: 'on' is not a Boolean value.");
-    return;
-  }
-  bool on = onString.equalsIgnoreCase("true");
+  int id = json["id"];
+  bool isOn = json["on"];
+  String data = json["data"].as<String>();
 
   log("Successfully parsed UDP Packet from " + packet.remoteIP().toString() + ".");
 
-  update_EEPROM_variables(id, on, packet_string);
+  update_EEPROM_variables(id, isOn, data);
 }
 
 // Write new values to eeprom
