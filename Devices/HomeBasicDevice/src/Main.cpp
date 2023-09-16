@@ -8,7 +8,7 @@
 
 #define UDP_PORT 5051
 
-#define ACTION_DELAY 500
+#define ACTION_DELAY 3000
 
 // You can change OTA variables here
 #define OTA_PORT 3232
@@ -27,13 +27,9 @@ void setup() {
 
   HomeDevice.serial_init();
   
-  HomeDevice.eeprom_init();
-  
   HomeDevice.wifi_init(SSID, PASS);
 
   HomeDevice.udp_init(UDP_PORT);
-
-  HomeDevice.load_previous_state();
 
   HomeDevice.ota_init(OTA_PASSWORD, OTA_PORT);
 
@@ -54,7 +50,7 @@ void loop() {
     previous_action_time = millis();
   }
   
-  digitalWrite(OUTPUT_GPIO_PIN, HomeDevice.state.isOn ? HIGH : LOW);
+  digitalWrite(OUTPUT_GPIO_PIN, HomeDevice.isOn ? HIGH : LOW);
 
   HomeDevice.ota_handle();
 }

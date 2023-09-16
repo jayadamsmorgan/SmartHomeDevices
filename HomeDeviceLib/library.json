@@ -1,6 +1,6 @@
 {
   "name": "HomeDeviceLib",
-  "version": "0.0.1",
+  "version": "0.2.2",
   "description": "Library for SmartHomeDevices project.",
   "keywords": "iot, home, automation",
   "authors": [

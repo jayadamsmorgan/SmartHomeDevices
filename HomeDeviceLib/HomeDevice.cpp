@@ -5,7 +5,6 @@
 #include "HardwareSerial.h"
 #include "WiFi.h"
 #include "AsyncUDP.h"
-#include "EEPROM.h"
 #include "ArduinoJson.h"
 
 //#define DEBUG_SERIAL_INIT_DELAY 5000
@@ -14,8 +13,15 @@
 #define OUTCOMING_WELCOME_BYTE 0x50
 
 HomeDeviceClass::HomeDeviceClass() {
+  #if !defined(DEVICE_TYPE)
+    #error DEVICE_TYPE was not declared. Use '-DDEVICE_TYPE="\"Your_Device_Type\""'
+  #else
+    deviceType = DEVICE_TYPE;
+  #endif // DEVICE_TYPE
   isUpdating = false;
   isConnected = false;
+  isTurningOn = false;
+  isTurningOff = false;
 }
 
 HomeDeviceClass::~HomeDeviceClass() {
@@ -38,21 +44,11 @@ void HomeDeviceClass::log(String msg) {
   }
 }
 
-void HomeDeviceClass::eeprom_init() {
-  eepromClass = EEPROMClass("eeprom0");
-  log("Initializing EEPROM...");
-  if(!eepromClass.begin(512)) {
-    log("Failed to initialize EEPROM. Restarting...");
-    vTaskDelay(500 / portTICK_PERIOD_MS);
-    ESP.restart();
-  }
-  log("EEPROM successfully initialized.");
-}
-
 void HomeDeviceClass::wifi_event_handler(WiFiEvent_t event) {
   switch(event) {
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
-      log("WiFi connected. IP address: " + WiFi.localIP().toString());
+      log("WiFi connected. IP address: "
+          + WiFi.localIP().toString());
       isConnected = true;
       break;
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
@@ -64,7 +60,7 @@ void HomeDeviceClass::wifi_event_handler(WiFiEvent_t event) {
   }
 }
 
-void HomeDeviceClass::wifi_init(String ssid, String pass) {
+void HomeDeviceClass::wifi_init(const char* ssid, const char* pass) {
   log("Connecting to WiFi...");
   HomeDeviceClass::ssid = ssid;
   HomeDeviceClass::pass = pass;
@@ -92,39 +88,10 @@ void HomeDeviceClass::udp_init(int udp_port) {
 // Send state variables back to server
 void HomeDeviceClass::send_current_state_to_server() {
   char welcome_char = OUTCOMING_WELCOME_BYTE;
-  String state_string = "";
-  state_string = state_string + welcome_char + "BasicDevice;{";
-  state_string = state_string + "\"id\":" + state.id;
-  state_string = state_string + ",\"on\":" + state.isOn;
-  state_string = state_string + ",\"data\":\"";
-  state_string = state_string + "\"}";
-  udp.broadcast(state_string.c_str());
-}
-
-
-// Load previously saved Device State
-void HomeDeviceClass::load_previous_state() {
-  eepromClass.get(0, state);
-}
-
-
-String HomeDeviceClass::get_data_variable(String var) {
-  int startIndex = state.data.indexOf(";" + var + "=");
-  if (startIndex == -1) {
-    log("Cannot parse data: '" + var + "': no '" + var + "' param.");
-    return "";
-  }
-  startIndex = startIndex + 2 + var.length();
-  int valueEndIndex = state.data.indexOf(";", startIndex);
-  if (valueEndIndex == -1) {
-    log("Cannot parse data: '" + var + "': Packet syntax is wrong.");
-    return "";
-  }
-  String stringValue = state.data.substring(startIndex, valueEndIndex);
-  if (stringValue.equals("")) {
-    log("Cannot parse data: invalid '" + var + "' value.");
-  }
-  return stringValue;
+  String dataStr;
+  serializeJson(json, dataStr);
+  dataStr = String(welcome_char) + DEVICE_TYPE + ";" + dataStr;
+  udp.broadcast(dataStr.c_str());
 }
 
 // Parse incoming UDP packet
@@ -144,40 +111,28 @@ void HomeDeviceClass::parse_udp_packet(AsyncUDPPacket packet) {
     log("Deserialization failed.");
     return;
   }
-  int id = json["id"];
-  bool isOn = json["on"];
-  String data = json["data"].as<String>();
+  id = json["id"];
+  bool on = json["on"];
 
-  log("Successfully parsed UDP Packet from " + packet.remoteIP().toString() + ".");
+  if (on != isOn) {
+    if (on) {
+      isTurningOn = true;
+      isTurningOff = false;
+    } else {
+      isTurningOff = true;
+      isTurningOn = false;
+    }
+    isOn = on;
+  } 
 
-  update_EEPROM_variables(id, isOn, data);
+  log("Successfully parsed UDP Packet from " +
+             packet.remoteIP().toString());
+
 }
 
-// Write new values to eeprom
-void HomeDeviceClass::update_EEPROM_variables(int id, bool on, String data) {
-  bool valuesChanged = false;
-  if (id != state.id) {
-    state.id = id;
-    valuesChanged = true;
-  }
-  if (on != state.isOn) {
-    state.isOn = on;
-    valuesChanged = true;
-  }
-  if (!data.equals(state.data)) {
-    state.data = data;
-    valuesChanged = true;
-  }
-
-  if (valuesChanged) { 
-    eepromClass.put(0, state);
-  }
-}
-
-
-void HomeDeviceClass::ota_init(String password, int port) {
-  if (!password.equals("")) {
-    ArduinoOTA.setPassword(password.c_str());
+void HomeDeviceClass::ota_init(const char* password, int port) {
+  if (strcmp(password, "") == 0) {
+    ArduinoOTA.setPassword(password);
   }
   if (port != 0) {
     ArduinoOTA.setPort(port);
@@ -198,8 +153,7 @@ void HomeDeviceClass::ota_init(String password, int port) {
     })
     .onProgress([this](unsigned int progress, unsigned int total) {
       String percentage = String(progress / (total / 100));
-      String logString = "Progress: " + percentage + "%";
-      log(logString);
+      log("Progress: " + percentage + "%");
     })
     .onError([this](ota_error_t error) {
       isUpdating = false;

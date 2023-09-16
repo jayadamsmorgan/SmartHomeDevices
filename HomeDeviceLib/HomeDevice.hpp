@@ -12,23 +12,23 @@
 #define OTA_PORT_DEFAULT 3232
 #define SERIAL_BAUD_DEFAULT 115200
 
+#define CUSTOM_PROP_ARR_SIZE 10
+
 class HomeDeviceClass
 {
   public:
-    struct State {
-      int id;
-      bool isOn;
-      String data;
-    };
 
     bool debug = false;
     
     StaticJsonDocument<1024> json; 
 
-    State state;
+    bool isOn;
+    int id;
 
     bool isUpdating;
     bool isConnected;
+    bool isTurningOn;
+    bool isTurningOff;
 
     HomeDeviceClass();
     ~HomeDeviceClass();
@@ -36,28 +36,23 @@ class HomeDeviceClass
     void serial_init(int baud = SERIAL_BAUD_DEFAULT);
     void log(String msg);
 
-    void eeprom_init();
-
     void udp_init(int udp_port);
 
-    void load_previous_state();
     void parse_udp_packet(AsyncUDPPacket packet);
     void send_current_state_to_server();
 
-    String get_data_variable(String var);
-
-    void wifi_init(String ssid, String pass);
-    void ota_init(String password = "", int port = OTA_PORT_DEFAULT);
+    void wifi_init(const char* ssid, const char* pass);
+    void ota_init(const char* password = "", int port = OTA_PORT_DEFAULT);
     void ota_handle();
   private:
-    String ssid;
-    String pass;
+    const char* custom_properties[CUSTOM_PROP_ARR_SIZE][2];
+    const char* ssid;
+    const char* pass;
 
     AsyncUDP udp;
-    EEPROMClass eepromClass;
 
-    void update_EEPROM_variables(int id, bool on, String data);
     void wifi_event_handler(WiFiEvent_t event);
+    const char* deviceType;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_HOMEDEVICE_LIB)

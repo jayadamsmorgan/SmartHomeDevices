@@ -13,6 +13,8 @@
 
 #define ACTION_DELAY 500
 
+#define SOFT_TURN_DURATION 500
+
 // You can change OTA variables here
 #define OTA_PORT 3232
 #define OTA_PASSWORD "admin"
@@ -30,13 +32,9 @@ void setup() {
 
   HomeDevice.serial_init();
   
-  HomeDevice.eeprom_init();
-  
   HomeDevice.wifi_init(SSID, PASS);
 
   HomeDevice.udp_init(UDP_PORT);
-
-  HomeDevice.load_previous_state();
 
   HomeDevice.ota_init(OTA_PASSWORD, OTA_PORT);
 
@@ -57,10 +55,28 @@ void loop() {
     previous_action_time = millis();
   }
   
-  String brightnessString = HomeDevice.get_data_variable("brightness");
-  uint8_t brightness = brightnessString.toInt();
+  uint8_t brightness = HomeDevice.json["brightness"];
 
-  ledcWrite(PWM_CHANNEL, HomeDevice.state.isOn ? brightness : 0);
+  if (HomeDevice.isTurningOn) {
+    for (int i = 0; i <= brightness; i++) {
+      if (millis() - previous_action_time >= SOFT_TURN_DURATION / brightness) {
+        ledcWrite(PWM_CHANNEL, i);
+        previous_action_time = millis();
+      }
+    }
+    HomeDevice.isTurningOn = false;
+  } 
+  if (HomeDevice.isTurningOff) {
+    for (int i = brightness; i >= 0; i--) {
+      if (millis() - previous_action_time >= SOFT_TURN_DURATION / brightness) {
+        ledcWrite(PWM_CHANNEL, i);
+        previous_action_time = millis();
+      }
+    }
+    HomeDevice.isTurningOff = false;
+  }
+
+  ledcWrite(PWM_CHANNEL, HomeDevice.isOn ? brightness : 0);
 
   ArduinoOTA.handle();
 }
