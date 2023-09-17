@@ -31,6 +31,8 @@ void setup() {
   //HomeDevice.debug = true;
 
   HomeDevice.serial_init();
+
+  HomeDevice.eeprom_init();
   
   HomeDevice.wifi_init(SSID, PASS);
 

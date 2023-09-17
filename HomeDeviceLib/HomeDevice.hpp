@@ -32,6 +32,8 @@ class HomeDeviceClass
 
     HomeDeviceClass();
     ~HomeDeviceClass();
+
+    void eeprom_init();
    
     void serial_init(int baud = SERIAL_BAUD_DEFAULT);
     void log(String msg);
@@ -48,6 +50,8 @@ class HomeDeviceClass
     const char* custom_properties[CUSTOM_PROP_ARR_SIZE][2];
     const char* ssid;
     const char* pass;
+
+    void write_to_eeprom(String jsonString);
 
     AsyncUDP udp;
 

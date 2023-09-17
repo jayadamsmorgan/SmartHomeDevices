@@ -2,6 +2,7 @@
 
 #include "Arduino.h"
 #include "ArduinoOTA.h"
+#include "EEPROM.h"
 #include "HardwareSerial.h"
 #include "WiFi.h"
 #include "AsyncUDP.h"
@@ -42,6 +43,32 @@ void HomeDeviceClass::log(String msg) {
   if (debug) {
     Serial.println(msg);
   }
+}
+
+void HomeDeviceClass::eeprom_init() {
+  if(!EEPROM.begin(1024)) {
+    log("Cannot initialize EEPROM... Restarting...");
+    ESP.restart();
+  }
+  String jsonString = EEPROM.readString(0);
+  log(jsonString);
+  DeserializationError error = deserializeJson(json, jsonString);
+  if (error) {
+    log("No previous state was found. Using default state.");
+    json["id"] = -1;
+    json["on"] = true;
+    json["name"] = "NO_NAME";
+    json["location"] = "NO_LOCATION";
+    json["data"] = "";
+    return;
+  }
+  id = json["id"];
+  isOn = json["on"];
+}
+
+void HomeDeviceClass::write_to_eeprom(String jsonString) {
+  EEPROM.writeString(0, jsonString);
+  EEPROM.commit();
 }
 
 void HomeDeviceClass::wifi_event_handler(WiFiEvent_t event) {
@@ -125,8 +152,12 @@ void HomeDeviceClass::parse_udp_packet(AsyncUDPPacket packet) {
     isOn = on;
   } 
 
+  write_to_eeprom(packet_string);
+
   log("Successfully parsed UDP Packet from " +
              packet.remoteIP().toString());
+
+  send_current_state_to_server();
 
 }
 
