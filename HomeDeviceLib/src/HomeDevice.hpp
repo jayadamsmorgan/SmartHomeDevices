@@ -47,7 +47,6 @@ class HomeDeviceClass
     void ota_init(const char* password = "", int port = OTA_PORT_DEFAULT);
     void ota_handle();
   private:
-    const char* custom_properties[CUSTOM_PROP_ARR_SIZE][2];
     const char* ssid;
     const char* pass;
 
