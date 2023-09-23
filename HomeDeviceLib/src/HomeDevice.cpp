@@ -7,6 +7,7 @@
 #include "WiFi.h"
 #include "AsyncUDP.h"
 #include "ArduinoJson.h"
+#include <functional>
 
 //#define DEBUG_SERIAL_INIT_DELAY 5000
 
@@ -15,14 +16,12 @@
 
 HomeDeviceClass::HomeDeviceClass() {
   #if !defined(DEVICE_TYPE)
-    #error DEVICE_TYPE was not declared. Use '-DDEVICE_TYPE="\"Your_Device_Type\""'
+    #error DEVICE_TYPE is not defined
   #else
-    deviceType = DEVICE_TYPE;
+    deviceType = STR(DEVICE_TYPE);
   #endif // DEVICE_TYPE
   isUpdating = false;
   isConnected = false;
-  isTurningOn = false;
-  isTurningOff = false;
 }
 
 HomeDeviceClass::~HomeDeviceClass() {
@@ -30,13 +29,14 @@ HomeDeviceClass::~HomeDeviceClass() {
 }
 
 //  Serial initialization for debugging purposes
-void HomeDeviceClass::serial_init(int baud) {
+HomeDeviceClass& HomeDeviceClass::serial_init(int baud) {
   #ifdef DEBUG_SERIAL_INIT_DELAY
   vTaskDelay(DEBUG_SERIAL_INIT_DELAY / portTICK_PERIOD_MS);
   #endif
   Serial.begin(115200);
   while (!Serial) { }
   log("Serial initialized.");
+  return HomeDevice;
 }
 
 void HomeDeviceClass::log(String msg) {
@@ -45,7 +45,7 @@ void HomeDeviceClass::log(String msg) {
   }
 }
 
-void HomeDeviceClass::eeprom_init() {
+HomeDeviceClass& HomeDeviceClass::eeprom_init() {
   if(!EEPROM.begin(1024)) {
     log("Cannot initialize EEPROM... Restarting...");
     ESP.restart();
@@ -60,10 +60,11 @@ void HomeDeviceClass::eeprom_init() {
     json["name"] = "NO_NAME";
     json["location"] = "NO_LOCATION";
     json["data"] = "";
-    return;
+    return HomeDevice;
   }
   id = json["id"];
   isOn = json["on"];
+  return HomeDevice;
 }
 
 void HomeDeviceClass::write_to_eeprom(String jsonString) {
@@ -87,7 +88,7 @@ void HomeDeviceClass::wifi_event_handler(WiFiEvent_t event) {
   }
 }
 
-void HomeDeviceClass::wifi_init(const char* ssid, const char* pass) {
+HomeDeviceClass& HomeDeviceClass::wifi_init(const char* ssid, const char* pass) {
   log("Connecting to WiFi...");
   HomeDeviceClass::ssid = ssid;
   HomeDeviceClass::pass = pass;
@@ -100,16 +101,18 @@ void HomeDeviceClass::wifi_init(const char* ssid, const char* pass) {
   while (WiFi.status() != WL_CONNECTED) {
     vTaskDelay(500 / portTICK_PERIOD_MS);
   }
+  return HomeDevice;
 }
 
 // WiFi UDP initialization
-void HomeDeviceClass::udp_init(int udp_port) {
+HomeDeviceClass& HomeDeviceClass::udp_init(int udp_port) {
   if(udp.listen(udp_port)) {
     udp.onPacket([this](AsyncUDPPacket packet) {
       parse_udp_packet(packet);
     });
   }
   log("UDP Client initialized");
+  return HomeDevice;
 }
 
 // Send state variables back to server
@@ -117,8 +120,18 @@ void HomeDeviceClass::send_current_state_to_server() {
   char welcome_char = OUTCOMING_WELCOME_BYTE;
   String dataStr;
   serializeJson(json, dataStr);
-  dataStr = String(welcome_char) + DEVICE_TYPE + ";" + dataStr;
+  dataStr = String(welcome_char) + deviceType + ";" + dataStr;
   udp.broadcast(dataStr.c_str());
+}
+
+HomeDeviceClass& HomeDeviceClass::on_turn_on(std::function<void()> fn) {
+  on_turn_on_function = fn;
+  return HomeDevice;
+}
+
+HomeDeviceClass& HomeDeviceClass::on_turn_off(std::function<void()> fn) {
+  on_turn_off_function = fn;
+  return HomeDevice;
 }
 
 // Parse incoming UDP packet
@@ -143,11 +156,9 @@ void HomeDeviceClass::parse_udp_packet(AsyncUDPPacket packet) {
 
   if (on != isOn) {
     if (on) {
-      isTurningOn = true;
-      isTurningOff = false;
+      on_turn_on_function();
     } else {
-      isTurningOff = true;
-      isTurningOn = false;
+      on_turn_off_function();
     }
     isOn = on;
   } 
@@ -161,7 +172,7 @@ void HomeDeviceClass::parse_udp_packet(AsyncUDPPacket packet) {
 
 }
 
-void HomeDeviceClass::ota_init(const char* password, int port) {
+HomeDeviceClass& HomeDeviceClass::ota_init(const char* password, int port) {
   if (strcmp(password, "") == 0) {
     ArduinoOTA.setPassword(password);
   }
@@ -197,6 +208,7 @@ void HomeDeviceClass::ota_init(const char* password, int port) {
   ArduinoOTA.begin();
   log("OTA Update Service started at port " + String(port)
       + " with hostname " + ArduinoOTA.getHostname() + ".");
+  return HomeDevice;
 }
 
 void HomeDeviceClass::ota_handle() {

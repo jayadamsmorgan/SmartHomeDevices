@@ -8,11 +8,27 @@
 #include "AsyncUDP.h"
 #include "EEPROM.h"
 #include "ArduinoJson.h"
+#include "sys/_stdint.h"
+#include <functional>
+
+#define ST(x) #x
+#define STR(x) ST(x)
 
 #define OTA_PORT_DEFAULT 3232
 #define SERIAL_BAUD_DEFAULT 115200
 
-#define CUSTOM_PROP_ARR_SIZE 10
+struct RGBColor {
+  uint8_t red;
+  uint8_t green;
+  uint8_t blue;
+};
+
+struct RGBWColor {
+  uint8_t red;
+  uint8_t green;
+  uint8_t blue;
+  uint8_t white;
+};
 
 class HomeDeviceClass
 {
@@ -27,28 +43,32 @@ class HomeDeviceClass
 
     bool isUpdating;
     bool isConnected;
-    bool isTurningOn;
-    bool isTurningOff;
 
     HomeDeviceClass();
     ~HomeDeviceClass();
 
-    void eeprom_init();
+    HomeDeviceClass& on_turn_on(std::function<void()> fn); // Perform function on turning on
+    HomeDeviceClass& on_turn_off(std::function<void()> fn); // Perform function on turning off
+
+    HomeDeviceClass& eeprom_init();
    
-    void serial_init(int baud = SERIAL_BAUD_DEFAULT);
+    HomeDeviceClass& serial_init(int baud = SERIAL_BAUD_DEFAULT);
     void log(String msg);
 
-    void udp_init(int udp_port);
+    HomeDeviceClass& udp_init(int udp_port);
 
     void parse_udp_packet(AsyncUDPPacket packet);
     void send_current_state_to_server();
 
-    void wifi_init(const char* ssid, const char* pass);
-    void ota_init(const char* password = "", int port = OTA_PORT_DEFAULT);
+    HomeDeviceClass& wifi_init(const char* ssid, const char* pass);
+    HomeDeviceClass& ota_init(const char* password = "", int port = OTA_PORT_DEFAULT);
     void ota_handle();
   private:
     const char* ssid;
     const char* pass;
+
+    std::function<void()> on_turn_on_function;
+    std::function<void()> on_turn_off_function;
 
     void write_to_eeprom(String jsonString);
 

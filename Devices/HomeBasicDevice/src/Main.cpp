@@ -1,19 +1,5 @@
 #include "HomeDevice.hpp"
 
-// Change values for your WiFi
-#define SSID "*********"
-#define PASS "*********"
-
-#define OUTPUT_GPIO_PIN 13
-
-#define UDP_PORT 5051
-
-#define ACTION_DELAY 3000
-
-// You can change OTA variables here
-#define OTA_PORT 3232
-#define OTA_PASSWORD "admin"
-
 // GPIO pins setup
 void gpio_setup() {
   pinMode(OUTPUT_GPIO_PIN, OUTPUT);
@@ -25,15 +11,12 @@ void setup() {
 
   //HomeDevice.debug = true;
 
-  HomeDevice.serial_init();
-
-  HomeDevice.eeprom_init();
-  
-  HomeDevice.wifi_init(SSID, PASS);
-
-  HomeDevice.udp_init(UDP_PORT);
-
-  HomeDevice.ota_init(OTA_PASSWORD, OTA_PORT);
+  HomeDevice
+    .serial_init()
+    .eeprom_init()
+    .wifi_init(STR(SSID), STR(PASS))
+    .udp_init(UDP_PORT)
+    .ota_init(STR(OTA_PASSWORD), OTA_PORT);
 
 }
 

@@ -1,0 +1,18 @@
+{
+  "required": {
+    "SSID": "your_wifi_ssid",
+    "PASS": "your_wifi_password",
+    "OUTPUT_GPIO_PIN": 13
+  },
+  "optional": {
+    "PWM_CHANNEL": 0,
+    "PWM_FREQ": 5000,
+    "PWM_RESOLUTION": 8,
+    "SOFT_TURN_DURATION": 500,
+    "UDP_PORT": 5051,
+    "ACTION_DELAY": 3000,
+    "OTA_PORT": "3232",
+    "OTA_PASSWORD": "admin"
+  },
+  "DEVICE_TYPE": "LightDevice"
+}
