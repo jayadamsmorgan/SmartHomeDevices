@@ -13,13 +13,14 @@ for name in os.listdir(script_directory + "/../Devices/"):
     if name.startswith("Home"):
         device_types.append(name)
 
+device_types = sorted(device_types)
 
 print("Select the type of Device you want to use:")
 target_type = pyip.inputMenu(device_types, numbered = True)
 
 boards_result = subprocess.run("pio boards esp32", shell=True, capture_output=True, text=True)
 if boards_result.returncode != 0:
-    subprocess.run("sh " + script_directory + "install_dependencies.sh", shell=True, capture_output=True, text=True)
+    subprocess.run("sh " + script_directory + "/install_dependencies.sh", shell=True, capture_output=True, text=True)
     boards_result = subprocess.run("pio boards esp32", shell=True, capture_output=True, text=True)
 
 boards = []

@@ -1,7 +1,7 @@
 {
   "required": {
-    "SSID": "your_wifi_ssid",
-    "PASS": "your_wifi_password",
+    "WIFI_SSID": "your_wifi_ssid",
+    "WIFI_PASS": "your_wifi_password",
     "OUTPUT_GPIO_PIN": 13
   },
   "optional": {

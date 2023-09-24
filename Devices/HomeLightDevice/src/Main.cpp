@@ -13,7 +13,7 @@ void setup() {
   HomeDevice
     .serial_init()
     .eeprom_init()
-    .wifi_init(STR(SSID), STR(PASS))
+    .wifi_init(STR(WIFI_SSID), STR(WIFI_PASS))
     .udp_init(UDP_PORT)
     .ota_init(STR(OTA_PASSWORD), OTA_PORT)
     .on_turn_on([]{
