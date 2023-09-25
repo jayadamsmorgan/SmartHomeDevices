@@ -75,7 +75,6 @@ class HomeDeviceClass
     AsyncUDP udp;
 
     void wifi_event_handler(WiFiEvent_t event);
-    const char* deviceType;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_HOMEDEVICE_LIB)

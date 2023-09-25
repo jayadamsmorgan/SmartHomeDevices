@@ -7,7 +7,6 @@
 #include "WiFi.h"
 #include "AsyncUDP.h"
 #include "ArduinoJson.h"
-#include <functional>
 
 //#define DEBUG_SERIAL_INIT_DELAY 5000
 
@@ -15,11 +14,6 @@
 #define OUTCOMING_WELCOME_BYTE 0x50
 
 HomeDeviceClass::HomeDeviceClass() {
-  #if !defined(DEVICE_TYPE)
-    #error DEVICE_TYPE is not defined
-  #else
-    deviceType = STR(DEVICE_TYPE);
-  #endif // DEVICE_TYPE
   isUpdating = false;
   isConnected = false;
 }
@@ -120,7 +114,7 @@ void HomeDeviceClass::send_current_state_to_server() {
   char welcome_char = OUTCOMING_WELCOME_BYTE;
   String dataStr;
   serializeJson(json, dataStr);
-  dataStr = String(welcome_char) + deviceType + ";" + dataStr;
+  dataStr = String(welcome_char) + STR(DEVICE_TYPE) + ";" + dataStr;
   udp.broadcast(dataStr.c_str());
 }
 
@@ -156,9 +150,13 @@ void HomeDeviceClass::parse_udp_packet(AsyncUDPPacket packet) {
 
   if (on != isOn) {
     if (on) {
-      on_turn_on_function();
+      if (on_turn_on_function) {
+        on_turn_on_function();
+      }
     } else {
-      on_turn_off_function();
+      if (on_turn_off_function) {
+        on_turn_off_function();
+      }
     }
     isOn = on;
   } 

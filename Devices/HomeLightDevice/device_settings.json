@@ -14,5 +14,5 @@
     "OTA_PORT": "3232",
     "OTA_PASSWORD": "admin"
   },
-  "DEVICE_TYPE": "LightDevice"
+  "DEVICE_TYPE": "lights.LightDevice"
 }
