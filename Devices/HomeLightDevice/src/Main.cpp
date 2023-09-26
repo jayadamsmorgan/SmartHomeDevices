@@ -15,20 +15,24 @@ void gpio_setup() {
 void setup() {
 
   gpio_setup();
-
-  //HomeDevice.debug = true;
+  
+  #if (DEBUG)
+  HomeDevice.debug = true;
+  #endif
   HomeDevice
     .serial_init()
     .eeprom_init()
     .wifi_init(STR(WIFI_SSID), STR(WIFI_PASS))
-    .udp_init(UDP_PORT)
-    .ota_init(STR(OTA_PASSWORD), OTA_PORT)
+    #if (SOFT_SWITCH)
     .on_turn_on([]{
       turning_on = true;
     })
     .on_turn_off([]{
       turning_off = false;
-    });
+    })
+    #endif
+    .udp_init(UDP_PORT)
+    .ota_init(STR(OTA_PASSWORD), OTA_PORT);
 
 }
 
@@ -45,7 +49,26 @@ void loop() {
     previous_action_time = millis();
   }
   
-  brightness = HomeDevice.json["brightness"];
+  #if SOFT_SWITCH
+  uint8_t newBrightness = HomeDevice.json["brightness"];
+
+  if (abs(newBrightness - brightness) >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
+    if (newBrightness > brightness) {
+      while (brightness != newBrightness) {
+        brightness++;
+        ledcWrite(PWM_CHANNEL, brightness);
+        delay(SOFT_TURN_DURATION / 100);
+      }
+    } else {
+      while (brightness != newBrightness) {
+        brightness--;
+        ledcWrite(PWM_CHANNEL, brightness);
+        delay(SOFT_TURN_DURATION / 100);
+      }
+    }
+  } else {
+    brightness = newBrightness;
+  }
 
   if (turning_on) {
     brightness = 0;
@@ -70,6 +93,9 @@ void loop() {
     }
     turning_off = false;
   }
+  #else
+  brightness = HomeDevice.json["brightness"];
+  #endif // SOFT_SWITCH
 
   ledcWrite(PWM_CHANNEL, HomeDevice.isOn ? brightness : 0);
 

@@ -8,9 +8,10 @@ void gpio_setup() {
 void setup() {
 
   gpio_setup();
-
-  //HomeDevice.debug = true;
-
+  
+  #if (DEBUG)
+  HomeDevice.debug = true;
+  #endif
   HomeDevice
     .serial_init()
     .eeprom_init()

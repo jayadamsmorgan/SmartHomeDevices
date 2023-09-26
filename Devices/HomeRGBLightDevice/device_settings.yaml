@@ -1,0 +1,57 @@
+# Required options to configure
+Required:
+  WIFI_SSID: "your_wifi_ssid"
+  WIFI_PASS: "your_wifi_pass"
+
+  # If using 3 pins to control RGB LED, define pins below:
+  OUTPUT_GPIO_RGB_LED_RED: 46
+  OUTPUT_GPIO_RGB_LED_GREEN: 47
+  OUTPUT_GPIO_RGB_LED_BLUE: 48
+
+  # If using 1 pin to control RGB LED:
+  # change USE_ADAFRUIT_NEOPIXEL to true and define your pin below
+  USE_ADAFRUIT_NEOPIXEL: false
+  OUTPUT_ADAFRUIT_GPIO_PIN: 48
+
+# Optional confiuration, change them if you know what you're doing...
+Optional:
+  # Enable debug output to Serial port
+  DEBUG: false
+
+  # Delay between packets sent to server
+  ACTION_DELAY: 3000
+
+  # Enable soft transitions between on/off, brightness and color changes
+  SOFT_SWITCH: true
+
+  # Total duration of soft transition
+  SOFT_TURN_DURATION: 1000
+
+  # Threshold after which soft transition would apply to color change
+  COLOR_SOFT_TURN_THRESHOLD: 10
+
+  # Threshold after which soft transition would apply to brightness change
+  BRIGHTNESS_SOFT_TURN_THRESHOLD: 10
+
+  # RGB Sequence if you are using 1 pin to control LED, could be "NEO_GRB" or "NEO_RGB"
+  # Most of the LEDs are GRB, change this value if you get wrong colors
+  ADA_RGB_GRB: "NEO_GRB"
+
+  # RGB Frequence for Adafruit NeoPixel Library, could be "NEO_KHZ800" or "NEO_KHZ400"
+  ADA_RGB_FREQ: "NEO_KHZ800"
+
+  # PWM settings used for controlling 3 pin LEDs
+  PWM_CHANNEL_RED: 0
+  PWM_CHANNEL_GREEN: 1
+  PWM_CHANNEL_BLUE: 2
+  PWM_RESOLUTION: 8
+  PWM_FREQ: 5000
+
+  # Device and Server UDP_PORT, 5051 is default for JavaHomeServer
+  UDP_PORT: 5051
+
+  # Settings for OTA updates, 3232:admin are defaults for JavaHomeServer
+  OTA_PORT: 3232
+  OTA_PASSWORD: "admin"
+
+DEVICE_TYPE: "lights.RGBLightDevice"

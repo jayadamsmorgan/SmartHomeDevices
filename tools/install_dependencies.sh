@@ -17,6 +17,9 @@ if ! command -v python3 &> /dev/null; then
     fi
 fi
 
+pip3 install pyyaml
+pip3 install pyinputplus
+
 # Check if PlatformIO Core is installed and install
 if ! command -v platformio &> /dev/null; then
     echo "PlatformIO Core not found. Installing PlatformIO Core..."
