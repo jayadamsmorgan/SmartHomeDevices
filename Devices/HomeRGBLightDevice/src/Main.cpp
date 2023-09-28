@@ -1,24 +1,24 @@
 #include "HomeDevice.hpp"
 
-#if (USE_ADAFRUIT_NEOPIXEL)
+#ifdef USE_ADAFRUIT_NEOPIXEL
 #include "Adafruit_NeoPixel.h"
-Adafruit_NeoPixel rgb(1, ADAFRUIT_OUTPUT_GPIO_PIN, ADA_RGB_GRB + ADA_RGB_FREQ);
-#endif
+Adafruit_NeoPixel rgb(1, OUTPUT_ADAFRUIT_GPIO_PIN, ADA_RGB_GRB + ADA_RGB_FREQ);
+#endif // USE_ADAFRUIT_NEOPIXEL
 
 uint8_t brightness;
 
 unsigned long previous_action_time = 0;
 RGBColor color;
 
-#if (SOFT_SWITCH)
+#ifdef SOFT_SWITCH
 bool turning_on = false;
 bool turning_off = false;
-#endif
+#endif // SOFT_SWITCH
 
 void gpio_setup() {
-  #if (USE_ADAFRUIT_NEOPIXEL)
+  #ifdef USE_ADAFRUIT_NEOPIXEL
   rgb.begin();
-  #else
+  #else // USE_ADAFRUIT_NEOPIXEL
   pinMode(OUTPUT_GPIO_RGB_LED_RED, OUTPUT);
   pinMode(OUTPUT_GPIO_RGB_LED_GREEN, OUTPUT);
   pinMode(OUTPUT_GPIO_RGB_LED_BLUE, OUTPUT);
@@ -28,34 +28,38 @@ void gpio_setup() {
   ledcAttachPin(OUTPUT_GPIO_RGB_LED_GREEN, PWM_CHANNEL_GREEN);
   ledcSetup(PWM_CHANNEL_BLUE, PWM_FREQ, PWM_CHANNEL_BLUE);
   ledcAttachPin(OUTPUT_GPIO_RGB_LED_BLUE, PWM_CHANNEL_BLUE);
-  #endif
+  #endif // USE_ADAFRUIT_NEOPIXEL
+}
+
+void rgb_control(uint8_t red, uint8_t green, uint8_t blue) {
+  #ifdef USE_ADAFRUIT_NEOPIXEL
+  rgb.setBrightness((brightness / 100.0) * 255.0);
+  rgb.setPixelColor(0, rgb.Color(red, green, blue));
+  rgb.show();
+  #else // USE_ADAFRUIT_NEOPIXEL
+  ledcWrite(PWM_CHANNEL_RED, red * brightness / 100.0);
+  ledcWrite(PWM_CHANNEL_GREEN, green * brightness / 100.0);
+  ledcWrite(PWM_CHANNEL_BLUE, blue * brightness / 100.0);
+  #endif // USE_ADAFRUIT_NEOPIXEL
 }
 
 void rgb_control() {
-  #if (USE_ADAFRUIT_NEOPIXEL)
-  rgb.setBrightness((brightness / 100.0) * 255.0);
-  rgb.setPixelColor(0, rgb.Color(color.red, color.green, color.blue));
-  rgb.show();
-  #else
-  ledcWrite(PWM_CHANNEL_RED, color.red * brightness / 100.0);
-  ledcWrite(PWM_CHANNEL_GREEN, color.green * brightness / 100.0);
-  ledcWrite(PWM_CHANNEL_BLUE, color.blue * brightness / 100.0);
-  #endif
+  rgb_control(color.red, color.green, color.blue);
 }
 
 void setup() {
 
   gpio_setup();
 
-  #if (DEBUG)
+  #ifdef DEBUG
   HomeDevice.debug = true;
-  #endif
+  #endif // DEBUG
   HomeDevice
     .serial_init()
     .eeprom_init()
     .wifi_init(STR(WIFI_SSID), STR(WIFI_PASS))
     .udp_init(UDP_PORT)
-    #if (SOFT_SWITCH)
+    #ifdef SOFT_SWITCH
     .on_turn_off([](){
       turning_off = true;
     })
@@ -64,6 +68,11 @@ void setup() {
     })
     #endif // SOFT_SWITCH
     .ota_init(STR(OTA_PASSWORD), OTA_PORT);
+  
+  brightness = HomeDevice.json["brightness"];
+  color.red = HomeDevice.json["red"];
+  color.green = HomeDevice.json["green"];
+  color.blue = HomeDevice.json["blue"];
 }
 
 void loop() {
@@ -78,92 +87,126 @@ void loop() {
     HomeDevice.send_current_state_to_server();
     previous_action_time = millis();
   }
-  uint8_t newBrightness = HomeDevice.json["brightness"];
-  uint8_t red = HomeDevice.json["red"];
-  uint8_t green = HomeDevice.json["green"];
-  uint8_t blue = HomeDevice.json["blue"];
   
-  #if SOFT_SWITCH
-  if (abs(newBrightness - brightness) >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
-    if (newBrightness > brightness) {
-      while (brightness != newBrightness) {
-        brightness++;
-        rgb_control();
-        delay(SOFT_TURN_DURATION / 100);
-      }
-    } else {
-      while (brightness != newBrightness) {
-        brightness--;
-        rgb_control();
-        delay(SOFT_TURN_DURATION / 100);
-      }
-    }
-  } else {
-    brightness = newBrightness;
-  }
-
-  if (abs(red - color.red) >= COLOR_SOFT_CHANGE_THRESHOLD ||
-      abs(green - color.green) >= COLOR_SOFT_CHANGE_THRESHOLD ||
-      abs(blue - color.blue) >= COLOR_SOFT_CHANGE_THRESHOLD) {
-    int8_t redChange = red - color.red;
-    int8_t greenChange = green - color.green;
-    int8_t blueChange = blue - color.blue;
-    int8_t maxChange = max(abs(redChange), abs(greenChange), abs(blueChange));
-    float redStep = (float) redChange / maxChange;
-    float greenStep = (float) greenChange / maxChange;
-    float blueStep = (float) blueChange / maxChange;
-    while (red != color.red && green != color.green && blue != color.blue) {
-      if (red != color.red) {
-        red += redStep;
-      }
-      if (green != color.green) {
-        green += greenStep;
-      }
-      if (blue != color.blue) {
-        blue += blueStep;
-      }
-      rgb_control();
-      if (maxChange != 0) {
-        delay(SOFT_TURN_DURATION / maxChange);
-      }
-    }
-  } else {
-    color.red = red;
-    color.green = green;
-    color.blue = blue;
-  }
-
-  if (turning_on) {
-    brightness = 0;
-    uint8_t targetBrightness = HomeDevice.json["brightness"];
-    while (brightness < targetBrightness) {
-      brightness++;
-      rgb_control();
-      if (targetBrightness != 0) {
-        delay(SOFT_TURN_DURATION / targetBrightness);
-      }
-    }
-    turning_on = false;
-  }
-  if (turning_off) {
-    uint8_t previousBrightness = brightness;
-    while (brightness != 0) {
-      brightness--;
-      rgb_control();
-      if (previousBrightness != 0) {
-        delay(SOFT_TURN_DURATION / previousBrightness);
-      }
-    }
-    turning_off = false;
+  #ifdef SOFT_SWITCH
+  if (HomeDevice.isOn) {
+    rgb_control();
   }
   #endif // SOFT_SWITCH
 
+  if (!HomeDevice.newDataArrived) {
+    return;
+  }
+  HomeDevice.newDataArrived = false;
+
+
+  #ifdef SOFT_SWITCH
+  uint8_t target_brightness = HomeDevice.json["brightness"];
+  if (turning_on) {
+    if (target_brightness >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
+      while (brightness != target_brightness) {
+        brightness++;
+        rgb_control();
+        if (target_brightness != 0) {
+          delay(SOFT_TURN_DURATION / target_brightness);
+        } else {
+          delay(SOFT_TURN_DURATION / 255);
+        }
+      }
+    } else {
+      brightness = target_brightness;
+    }
+    turning_on = false;
+  } else if (turning_off) {
+    if (brightness >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
+      while (brightness != 0) {
+        brightness--;
+        rgb_control();
+        if (target_brightness != 0) {
+          delay(SOFT_TURN_DURATION / target_brightness);
+        } else {
+          delay(SOFT_TURN_DURATION / 255);
+        }
+      }
+    } else {
+      brightness = 0;
+    }
+    turning_off = false;
+  } else if (HomeDevice.isOn){
+    uint8_t change = abs(brightness - target_brightness);
+    if (change >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
+      while (brightness != target_brightness) {
+        if (brightness > target_brightness) {
+          brightness--;
+        } else {
+          brightness++;
+        }
+        rgb_control();
+        delay(SOFT_TURN_DURATION / change);
+      }
+    } else {
+      brightness = target_brightness;
+    }
+  }
+
+  float red = HomeDevice.json["red"];
+  float green = HomeDevice.json["green"];
+  float blue = HomeDevice.json["blue"];
+
+  if (red == 0 || green == 0 || blue == 0) {
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    float red = HomeDevice.json["red"];
+    float green = HomeDevice.json["green"];
+    float blue = HomeDevice.json["blue"];
+  }
+
+  if (HomeDevice.isOn) {
+    float redChange = (float) red - color.red;
+    float greenChange = (float) green - color.green;
+    float blueChange = (float) blue - color.blue;
+    if (redChange != 0) {
+      HomeDevice.log("redChange");
+      HomeDevice.log(String(redChange));
+    }
+  if (std::abs(redChange) >= COLOR_SOFT_CHANGE_THRESHOLD ||
+        std::abs(greenChange) >= COLOR_SOFT_CHANGE_THRESHOLD ||
+        std::abs(blueChange) >= COLOR_SOFT_CHANGE_THRESHOLD) {
+      float maxChange = std::max({std::abs(redChange), std::abs(greenChange), std::abs(blueChange)});
+      HomeDevice.log("maxChange");
+      HomeDevice.log(String(maxChange));
+      float redStep = redChange / maxChange;
+      HomeDevice.log("redStep");
+      HomeDevice.log(String(redStep));
+      float greenStep = greenChange / maxChange;
+      float blueStep = blueChange / maxChange;
+      float redTemp = color.red;
+      float greenTemp = color.green;
+      float blueTemp = color.blue;
+      for (uint8_t progress = 1; progress < maxChange; ++progress) {
+        redTemp += redStep;
+        greenTemp += greenStep;
+        blueTemp += blueStep;
+        rgb_control((uint8_t) redTemp, (uint8_t) greenTemp, (uint8_t) blueTemp);
+        delay((int) SOFT_TURN_DURATION / maxChange);
+      }
+    }
+  }
+  color.red = (uint8_t) red;
+  color.green = (uint8_t) green;
+  color.blue = (uint8_t) blue;
+
+  #else // SOFT_SWITCH
+  brightness = HomeDevice.json["brightness"];
+  color.red = HomeDevice.json["red"];
+  color.green = HomeDevice.json["green"];
+  color.blue = HomeDevice.json["blue"];
   if (HomeDevice.isOn) {
     rgb_control();
   } else {
     brightness = 0;
     rgb_control();
   }
+  #endif // SOFT_SWITCH
 
   ArduinoOTA.handle();
 }

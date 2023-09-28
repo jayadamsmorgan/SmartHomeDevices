@@ -16,6 +16,7 @@
 HomeDeviceClass::HomeDeviceClass() {
   isUpdating = false;
   isConnected = false;
+  newDataArrived = false;
 }
 
 HomeDeviceClass::~HomeDeviceClass() {
@@ -95,6 +96,11 @@ HomeDeviceClass& HomeDeviceClass::wifi_init(const char* ssid, const char* pass) 
   while (WiFi.status() != WL_CONNECTED) {
     vTaskDelay(500 / portTICK_PERIOD_MS);
   }
+  #ifdef WIFI_DISABLE_SLEEP
+  WiFi.setSleep(false);
+  #else
+  WiFi.setSleep(true);
+  #endif
   return HomeDevice;
 }
 
@@ -167,7 +173,7 @@ void HomeDeviceClass::parse_udp_packet(AsyncUDPPacket packet) {
              packet.remoteIP().toString());
 
   send_current_state_to_server();
-
+  newDataArrived = true;
 }
 
 HomeDeviceClass& HomeDeviceClass::ota_init(const char* password, int port) {

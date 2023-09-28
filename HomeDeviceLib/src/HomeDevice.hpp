@@ -44,6 +44,8 @@ class HomeDeviceClass
     bool isUpdating;
     bool isConnected;
 
+    bool newDataArrived;
+
     HomeDeviceClass();
     ~HomeDeviceClass();
 

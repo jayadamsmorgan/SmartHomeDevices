@@ -9,7 +9,7 @@ void setup() {
 
   gpio_setup();
   
-  #if (DEBUG)
+  #ifdef DEBUG
   HomeDevice.debug = true;
   #endif
   HomeDevice

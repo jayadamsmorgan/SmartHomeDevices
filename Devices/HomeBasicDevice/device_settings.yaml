@@ -8,7 +8,12 @@ Required:
 # Optional confiuration, change them if you know what you're doing...
 Optional:
   # Enable debug output to Serial port
-  DEBUG: false
+  # (Uncomment to turn on)
+  #DEBUG:
+
+  # Disable WiFi sleep
+  # (Uncomment to turn on)
+  #WIFI_DISABLE_SLEEP:
 
   # Delay between packets sent to server
   ACTION_DELAY: 3000

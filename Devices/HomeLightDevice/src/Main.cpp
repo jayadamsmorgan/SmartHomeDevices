@@ -4,8 +4,10 @@ uint8_t brightness;
 
 unsigned long previous_action_time = 0;
 
+#ifdef SOFT_SWITCH
 bool turning_on = false;
 bool turning_off = false;
+#endif // SOFT_SWITCH
 
 void gpio_setup() {
   ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
@@ -16,9 +18,9 @@ void setup() {
 
   gpio_setup();
   
-  #if (DEBUG)
+  #ifdef DEBUG
   HomeDevice.debug = true;
-  #endif
+  #endif // DEBUG
   HomeDevice
     .serial_init()
     .eeprom_init()
@@ -30,10 +32,11 @@ void setup() {
     .on_turn_off([]{
       turning_off = false;
     })
-    #endif
+    #endif // SOFT_SWITCH
     .udp_init(UDP_PORT)
     .ota_init(STR(OTA_PASSWORD), OTA_PORT);
 
+  brightness = HomeDevice.json["brightness"];
 }
 
 void loop() {
@@ -49,55 +52,75 @@ void loop() {
     previous_action_time = millis();
   }
   
-  #if SOFT_SWITCH
-  uint8_t newBrightness = HomeDevice.json["brightness"];
-
-  if (abs(newBrightness - brightness) >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
-    if (newBrightness > brightness) {
-      while (brightness != newBrightness) {
-        brightness++;
-        ledcWrite(PWM_CHANNEL, brightness);
-        delay(SOFT_TURN_DURATION / 100);
-      }
-    } else {
-      while (brightness != newBrightness) {
-        brightness--;
-        ledcWrite(PWM_CHANNEL, brightness);
-        delay(SOFT_TURN_DURATION / 100);
-      }
-    }
-  } else {
-    brightness = newBrightness;
+  #ifdef SOFT_SWITCH
+  if (HomeDevice.isOn) {
+    ledcWrite(PWM_CHANNEL, brightness);
   }
-
-  if (turning_on) {
-    brightness = 0;
-    uint8_t targetBrightness = HomeDevice.json["brightness"];
-    while (brightness < targetBrightness) {
-      brightness++;
-      ledcWrite(PWM_CHANNEL, brightness);
-      if (targetBrightness != 0) {
-        delay(SOFT_TURN_DURATION / targetBrightness);
-      }
-    }
-    turning_on = false;
-  }
-  if (turning_off) {
-    uint8_t previousBrightness = brightness;
-    while (brightness != 0) {
-      brightness--;
-      ledcWrite(PWM_CHANNEL, brightness);
-      if (previousBrightness != 0) {
-        delay(SOFT_TURN_DURATION / previousBrightness);
-      }
-    }
-    turning_off = false;
-  }
-  #else
-  brightness = HomeDevice.json["brightness"];
   #endif // SOFT_SWITCH
 
-  ledcWrite(PWM_CHANNEL, HomeDevice.isOn ? brightness : 0);
+  if (!HomeDevice.newDataArrived) {
+    return;
+  }
+  HomeDevice.newDataArrived = false;
+
+
+  #ifdef SOFT_SWITCH
+  uint8_t target_brightness = HomeDevice.json["brightness"];
+  if (turning_on) {
+    if (target_brightness >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
+      while (brightness != target_brightness) {
+        brightness++;
+        ledcWrite(PWM_CHANNEL, brightness);
+        if (target_brightness != 0) {
+          delay(SOFT_TURN_DURATION / target_brightness);
+        } else {
+          delay(SOFT_TURN_DURATION / 255);
+        }
+      }
+    } else {
+      brightness = target_brightness;
+    }
+    turning_on = false;
+  } else if (turning_off) {
+    if (brightness >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
+      while (brightness != 0) {
+        brightness--;
+        ledcWrite(PWM_CHANNEL, brightness);
+        if (target_brightness != 0) {
+          delay(SOFT_TURN_DURATION / target_brightness);
+        } else {
+          delay(SOFT_TURN_DURATION / 255);
+        }
+      }
+    } else {
+      brightness = 0;
+    }
+    turning_off = false;
+  } else if (HomeDevice.isOn){
+    uint8_t change = abs(brightness - target_brightness);
+    if (change >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
+      while (brightness != target_brightness) {
+        if (brightness > target_brightness) {
+          brightness--;
+        } else {
+          brightness++;
+        }
+        ledcWrite(PWM_CHANNEL, brightness);
+        delay(SOFT_TURN_DURATION / change);
+      }
+    } else {
+      brightness = target_brightness;
+    }
+  }
+
+  #else // SOFT_SWITCH
+  brightness = HomeDevice.json["brightness"];
+  if (HomeDevice.isOn) {
+    ledcWrite(PWM_CHANNEL, brightness);
+  } else {
+    ledcWrite(PWM_CHANNEL, 0);
+  }
+  #endif // SOFT_SWITCH
 
   ArduinoOTA.handle();
 }

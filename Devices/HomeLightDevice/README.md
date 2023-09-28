@@ -4,10 +4,10 @@ Basic Light Device realization with brightness functionality
 
 ## Features
 
-* Turning on/off
-* Brightness adjustment
+- Turning on/off
+- Brightness adjustment
+- Soft transitions between brightness and on/off (linear)
 
 ## TODO
 
-* Add basic realization schematics
-* Soft turning on/off
+- Add basic realization schematics
