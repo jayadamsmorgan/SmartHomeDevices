@@ -2,44 +2,63 @@
 
 SmartHomeDevices is a project implementing ESP32 smart devices for [JavaHomeServer](https://github.com/jayadamsmorgan/JavaHomeServer) using Arduino framework.
 
-## Installation
-
-### PlatformIO Core CLI
-
-1. Install [PlatformIO Core CLI](https://docs.platformio.org/en/stable/core/index.html)
-2. Choose the Smart Device you want, you can see list of devices and their custom features down below. Choose the one that fits you the most.
-3. Open the chosen '.cpp' file with your favorite editor.
-4. Modify predefined configuration values, such as `SSID` and `PASS` for your home network, GPIO pins, etc. You can also modify OTA settings, delays and other predefined values if you need to.
-5. Open the platformio.ini file in the selected smart device folder and change the board ID to the one you are using.
-   - You can use `pio device list` to check the list of the connected devices
-   - Check the full list of boards with `pio boards`
-6. Open terminal and navigate to the folder with chosen smart device.
-7. Connect your ESP32 board and run the command:
-
-   ```zsh
-   pio run -t upload
-   ```
-
-## OTA updating
-
-Once you flash ESP32 with this software you will be able to reflash it via Wi-Fi:
-
-    python3 tools/espota.py -i esp-ip-or-hostname.local -a your_fancy_password -f path/to/your/firmware.bin -r
-
-Or if you have custom port:
-
-    python3 tools/espota.py -i esp-ip-or-hostname.local -p port -a your_fancy_password -f path/to/your/firmware.bin -r
-
-## List of available devices
+## List of implemented devices
 
 - [HomeBasicDevice](Devices/HomeBasicDevice)
 - [HomeLightDevice](Devices/HomeLightDevice)
 - [HomeRGBLightDevice](Devices/HomeRGBLightDevice)
 
+## Installation
+
+### PlatformIO Core CLI
+
+1. Clone repository and `cd` into it
+
+   ```zsh
+       git clone https://github.com/jayadamsmorgan/SmartHomeDevices.git
+       cd SmartHomeDevices
+   ```
+
+2. Install dependencies using `install_dependencies.sh`:
+
+   ```zsh
+       sh tools/install_dependencies.sh
+   ```
+
+   This script installs [Homebrew Package Manager](https://brew.sh) and uses it to install other dependencies.
+   You can also install dependencies on your own, here is a list of them:
+
+   - [PlatformIO Core CLI](https://docs.platformio.org/en/stable/core/installation/index.html)
+   - `python3`
+   - `pyyaml`
+   - `pyinputplus`
+
+3. Choose the [Device](Devices) you want to implement, and edit it's `device_settings.yaml` configuration file. The `Required` fields is mostly just GPIO and Wi-Fi configuration, while `Optional` values are for advanced users for more precise tuning and extra options.
+
+4. Connect your ESP32 and run `setup.py` script:
+
+   ```zsh
+       python3 tools/setup.py
+   ```
+
+5. At the prompts select the desired Device implementation you chose at step 3 and the type of your ESP32 board. You can use numbers to select. The script will compile the firmware and flash your ESP32.
+
+6. Voilà!
+
+Note: You can also do it without the script by just specifying your board in `platformio.ini` and running `pio run -t upload`. Adding the setup script felt more convinient.
+
+## OTA updating
+
+Once you flash ESP32 with this software you will be able to reflash it via Wi-Fi. [JavaHomeServer](https://github.com/jayadamsmorgan/JavaHomeServer) uses the default values to update Devices, but if you want to update Devices over-the-air manually you can do so using `espota.py`:
+
+    python3 tools/espota.py -i esp-ip-or-hostname -p your_ota_port -a your_fancy_ota_password -f path/to/your/firmware.bin -r
+
+## Contributing
+
+Feel free to contribute any piece of code.
+
 ## TODO
 
 - Add more devices with different features.
-- Script to automate installations.
-- Add installation instructions for Platformio IDE.
 - Support more platforms besides ESP32
 - Documentation

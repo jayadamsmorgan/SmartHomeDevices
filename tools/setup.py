@@ -47,5 +47,5 @@ lines = [
 file.writelines(lines)
 file.close()
 
-result = subprocess.run("pio run -d " + script_directory + "/../Devices/" + target_type, shell=True, capture_output=False, text=True)
+result = subprocess.run("pio run -d " + script_directory + "/../Devices/" + target_type + " -t upload", shell=True, capture_output=False, text=True)
 print("Done")
