@@ -50,15 +50,16 @@ HomeDeviceClass& HomeDeviceClass::eeprom_init() {
   DeserializationError error = deserializeJson(json, jsonString);
   if (error) {
     log("No previous state was found. Using default state.");
-    json["id"] = -1;
-    json["on"] = true;
-    json["name"] = "NO_NAME";
-    json["location"] = "NO_LOCATION";
-    json["data"] = "";
+    json["deviceType"] = STR(DEVICE_TYPE);
+    json["device"]["id"] = -1;
+    json["device"]["on"] = true;
+    json["device"]["name"] = "NO_NAME";
+    json["device"]["location"] = "NO_LOCATION";
+    json["device"]["data"] = "";
     return HomeDevice;
   }
-  id = json["id"];
-  isOn = json["on"];
+  id = json["device"]["id"];
+  isOn = json["device"]["on"];
   return HomeDevice;
 }
 
@@ -120,7 +121,7 @@ void HomeDeviceClass::send_current_state_to_server() {
   char welcome_char = OUTCOMING_WELCOME_BYTE;
   String dataStr;
   serializeJson(json, dataStr);
-  dataStr = String(welcome_char) + STR(DEVICE_TYPE) + ";" + dataStr;
+  dataStr = String(welcome_char) + dataStr;
   udp.broadcast(dataStr.c_str());
 }
 
@@ -151,8 +152,8 @@ void HomeDeviceClass::parse_udp_packet(AsyncUDPPacket packet) {
     log("Deserialization failed.");
     return;
   }
-  id = json["id"];
-  bool on = json["on"];
+  id = json["device"]["id"];
+  bool on = json["device"]["on"];
 
   if (on != isOn) {
     if (on) {

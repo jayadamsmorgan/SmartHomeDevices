@@ -5,6 +5,8 @@
 Adafruit_NeoPixel rgb(1, OUTPUT_ADAFRUIT_GPIO_PIN, ADA_RGB_GRB + ADA_RGB_FREQ);
 #endif // USE_ADAFRUIT_NEOPIXEL
 
+#define Device HomeDevice.json["device"]
+
 uint8_t brightness;
 
 unsigned long previous_action_time = 0;
@@ -69,10 +71,10 @@ void setup() {
     #endif // SOFT_SWITCH
     .ota_init(STR(OTA_PASSWORD), OTA_PORT);
   
-  brightness = HomeDevice.json["brightness"];
-  color.red = HomeDevice.json["red"];
-  color.green = HomeDevice.json["green"];
-  color.blue = HomeDevice.json["blue"];
+  brightness = Device["brightness"];
+  color.red = Device["red"];
+  color.green = Device["green"];
+  color.blue = Device["blue"];
 }
 
 void loop() {
@@ -101,7 +103,7 @@ void loop() {
 
 
   #ifdef SOFT_SWITCH
-  uint8_t target_brightness = HomeDevice.json["brightness"];
+  uint8_t target_brightness = Device["brightness"];
   if (turning_on) {
     if (target_brightness >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
       while (brightness != target_brightness) {
@@ -149,34 +151,26 @@ void loop() {
     }
   }
 
-  float red = HomeDevice.json["red"];
-  float green = HomeDevice.json["green"];
-  float blue = HomeDevice.json["blue"];
+  float red = Device["red"];
+  float green = Device["green"];
+  float blue = Device["blue"];
 
   if (red == 0 || green == 0 || blue == 0) {
     vTaskDelay(100 / portTICK_PERIOD_MS);
-    float red = HomeDevice.json["red"];
-    float green = HomeDevice.json["green"];
-    float blue = HomeDevice.json["blue"];
+    float red = Device["red"];
+    float green = Device["green"];
+    float blue = Device["blue"];
   }
 
   if (HomeDevice.isOn) {
     float redChange = (float) red - color.red;
     float greenChange = (float) green - color.green;
     float blueChange = (float) blue - color.blue;
-    if (redChange != 0) {
-      HomeDevice.log("redChange");
-      HomeDevice.log(String(redChange));
-    }
   if (std::abs(redChange) >= COLOR_SOFT_CHANGE_THRESHOLD ||
         std::abs(greenChange) >= COLOR_SOFT_CHANGE_THRESHOLD ||
         std::abs(blueChange) >= COLOR_SOFT_CHANGE_THRESHOLD) {
       float maxChange = std::max({std::abs(redChange), std::abs(greenChange), std::abs(blueChange)});
-      HomeDevice.log("maxChange");
-      HomeDevice.log(String(maxChange));
       float redStep = redChange / maxChange;
-      HomeDevice.log("redStep");
-      HomeDevice.log(String(redStep));
       float greenStep = greenChange / maxChange;
       float blueStep = blueChange / maxChange;
       float redTemp = color.red;

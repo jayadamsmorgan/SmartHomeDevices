@@ -40,4 +40,4 @@ Optional:
   OTA_PORT: 3232
   OTA_PASSWORD: "admin"
 
-DEVICE_TYPE: "lights.LightDevice"
+DEVICE_TYPE: "LightDevice"

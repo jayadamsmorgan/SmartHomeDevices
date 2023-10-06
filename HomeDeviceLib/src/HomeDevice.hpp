@@ -8,8 +8,6 @@
 #include "AsyncUDP.h"
 #include "EEPROM.h"
 #include "ArduinoJson.h"
-#include "sys/_stdint.h"
-#include <functional>
 
 #define ST(x) #x
 #define STR(x) ST(x)

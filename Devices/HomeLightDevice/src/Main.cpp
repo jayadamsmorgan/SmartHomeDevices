@@ -1,5 +1,7 @@
 #include "HomeDevice.hpp"
 
+#define Device HomeDevice.json["device"]
+
 uint8_t brightness;
 
 unsigned long previous_action_time = 0;
@@ -36,7 +38,7 @@ void setup() {
     .udp_init(UDP_PORT)
     .ota_init(STR(OTA_PASSWORD), OTA_PORT);
 
-  brightness = HomeDevice.json["brightness"];
+  brightness = Device["brightness"];
 }
 
 void loop() {
@@ -65,7 +67,7 @@ void loop() {
 
 
   #ifdef SOFT_SWITCH
-  uint8_t target_brightness = HomeDevice.json["brightness"];
+  uint8_t target_brightness = HomeDevice.json["device"]["brightness"];
   if (turning_on) {
     if (target_brightness >= BRIGHTNESS_SOFT_CHANGE_THRESHOLD) {
       while (brightness != target_brightness) {
