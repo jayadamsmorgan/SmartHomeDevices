@@ -35,9 +35,10 @@ void setup() {
       turning_off = false;
     })
     #endif // SOFT_SWITCH
-    .udp_init(UDP_PORT)
-    .ota_init(STR(OTA_PASSWORD), OTA_PORT);
-
+    .udp_init(UDP_PORT);
+    #ifdef ENABLE_OTA
+    HomeDevice.ota_init(STR(OTA_PASSWORD), OTA_PORT);
+    #endif // ENABLE_OTA
   brightness = Device["brightness"];
 }
 
@@ -124,6 +125,8 @@ void loop() {
   }
   #endif // SOFT_SWITCH
 
+  #ifdef ENABLE_OTA
   ArduinoOTA.handle();
+  #endif // ENABLE_OTA
 }
 

@@ -4,9 +4,10 @@ Required:
   WIFI_PASS: "your_wifi_pass"
 
   # If using 3 pins to control RGB LED, define pins below:
-  OUTPUT_GPIO_RGB_LED_RED: 46
-  OUTPUT_GPIO_RGB_LED_GREEN: 47
-  OUTPUT_GPIO_RGB_LED_BLUE: 48
+  OUTPUT_GPIO_RGB_LED_RED: 45
+  OUTPUT_GPIO_RGB_LED_GREEN: 46
+  OUTPUT_GPIO_RGB_LED_BLUE: 47
+  OUTPUT_GPIO_RGB_LED_WHITE: 48
 
   # If using 1 pin to control RGB LED:
   # Uncomment 2 lines below and define your pin
@@ -50,6 +51,7 @@ Optional:
   PWM_CHANNEL_RED: 0
   PWM_CHANNEL_GREEN: 1
   PWM_CHANNEL_BLUE: 2
+  PWM_CHANNEL_WHITE: 3
   PWM_RESOLUTION: 8
   PWM_FREQ: 5000
 

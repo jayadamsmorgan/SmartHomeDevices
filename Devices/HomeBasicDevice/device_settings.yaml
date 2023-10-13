@@ -22,6 +22,8 @@ Optional:
   UDP_PORT: 5051
 
   # Settings for OTA updates, 3232:admin are defaults for JavaHomeServer
+  # Comment ENABLE_OTA to disable OTA updates
+  ENABLE_OTA:
   OTA_PORT: 3232
   OTA_PASSWORD: "admin"
 

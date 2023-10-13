@@ -11,14 +11,15 @@ void setup() {
   
   #ifdef DEBUG
   HomeDevice.debug = true;
-  #endif
+  #endif // DEBUG
   HomeDevice
     .serial_init()
     .eeprom_init()
     .wifi_init(STR(WIFI_SSID), STR(WIFI_PASS))
-    .udp_init(UDP_PORT)
-    .ota_init(STR(OTA_PASSWORD), OTA_PORT);
-
+    .udp_init(UDP_PORT);
+    #ifdef ENABLE_OTA
+    HomeDevice.ota_init(STR(OTA_PASSWORD), OTA_PORT);
+    #endif // ENABLE_OTA
 }
 
 unsigned long previous_action_time = 0;
@@ -38,6 +39,8 @@ void loop() {
   
   digitalWrite(OUTPUT_GPIO_PIN, HomeDevice.isOn ? HIGH : LOW);
 
+  #ifdef ENABLE_OTA
   HomeDevice.ota_handle();
+  #endif // ENABLE_OTA
 }
 
