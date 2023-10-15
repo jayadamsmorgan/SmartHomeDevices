@@ -51,14 +51,13 @@ HomeDeviceClass& HomeDeviceClass::eeprom_init() {
   if (error) {
     log("No previous state was found. Using default state.");
     json["deviceType"] = STR(DEVICE_TYPE);
-    json["device"]["id"] = -1;
+    json["device"]["id"] = "NO_ID";
     json["device"]["on"] = true;
     json["device"]["name"] = "NO_NAME";
     json["device"]["location"] = "NO_LOCATION";
     json["device"]["data"] = "";
     return HomeDevice;
   }
-  id = json["device"]["id"];
   isOn = json["device"]["on"];
   return HomeDevice;
 }
@@ -152,7 +151,6 @@ void HomeDeviceClass::parse_udp_packet(AsyncUDPPacket packet) {
     log("Deserialization failed.");
     return;
   }
-  id = json["device"]["id"];
   bool on = json["device"]["on"];
 
   if (on != isOn) {

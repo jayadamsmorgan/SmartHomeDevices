@@ -37,7 +37,6 @@ class HomeDeviceClass
     StaticJsonDocument<1024> json; 
 
     bool isOn;
-    int id;
 
     bool isUpdating;
     bool isConnected;
