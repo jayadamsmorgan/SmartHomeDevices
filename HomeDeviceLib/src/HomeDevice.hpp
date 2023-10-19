@@ -43,6 +43,8 @@ class HomeDeviceClass
 
     bool newDataArrived;
 
+    bool eepromEmpty;
+
     HomeDeviceClass();
     ~HomeDeviceClass();
 

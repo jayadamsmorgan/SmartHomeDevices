@@ -39,6 +39,11 @@ void setup() {
     #ifdef ENABLE_OTA
     HomeDevice.ota_init(STR(OTA_PASSWORD), OTA_PORT);
     #endif // ENABLE_OTA
+
+  if (HomeDevice.eepromEmpty) {
+    Device["brightness"] = 100;
+  }
+
   brightness = Device["brightness"];
 }
 

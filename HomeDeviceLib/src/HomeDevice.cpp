@@ -17,6 +17,7 @@ HomeDeviceClass::HomeDeviceClass() {
   isUpdating = false;
   isConnected = false;
   newDataArrived = false;
+  eepromEmpty = false;
 }
 
 HomeDeviceClass::~HomeDeviceClass() {
@@ -56,6 +57,7 @@ HomeDeviceClass& HomeDeviceClass::eeprom_init() {
     json["device"]["name"] = "NO_NAME";
     json["device"]["location"] = "NO_LOCATION";
     json["device"]["data"] = "";
+    eepromEmpty = true;
     return HomeDevice;
   }
   isOn = json["device"]["on"];

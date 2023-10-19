@@ -13,6 +13,7 @@ Required:
   # Uncomment 2 lines below and define your pin
   #USE_ADAFRUIT_NEOPIXEL:
   #OUTPUT_ADAFRUIT_GPIO_PIN: 48
+  #ADAFRUIT_LED_AMOUNT: 1
 
 # Optional confiuration, change them if you know what you're doing...
 Optional:

@@ -2,7 +2,10 @@
 
 #ifdef USE_ADAFRUIT_NEOPIXEL
 #include "Adafruit_NeoPixel.h"
-Adafruit_NeoPixel rgb(1, OUTPUT_ADAFRUIT_GPIO_PIN, ADA_RGB_GRB + ADA_RGB_FREQ);
+#ifndef ADAFRUIT_LED_AMOUNT
+#define ADAFRUIT_LED_AMOUNT 1
+#endif // ADAFRUIT_LED_AMOUNT
+Adafruit_NeoPixel rgb(ADAFRUIT_LED_AMOUNT, OUTPUT_ADAFRUIT_GPIO_PIN, ADA_RGB_GRB + ADA_RGB_FREQ);
 #endif // USE_ADAFRUIT_NEOPIXEL
 
 #define Device HomeDevice.json["device"]
@@ -76,6 +79,14 @@ void setup() {
     #ifdef ENABLE_OTA
     HomeDevice.ota_init(STR(OTA_PASSWORD), OTA_PORT);
     #endif // ENABLE_OTA
+  
+  if (HomeDevice.eepromEmpty) {
+    Device["brightness"] = 100;
+    Device["red"] = 100;
+    Device["green"] = 0;
+    Device["blue"] = 255;
+    Device["white"] = 0;
+  }
 
   brightness = Device["brightness"];
   color.red = Device["red"];
