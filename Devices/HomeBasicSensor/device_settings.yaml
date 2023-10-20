@@ -1,0 +1,33 @@
+# Required options to configure
+Required:
+  WIFI_SSID: "your_wifi_ssid"
+  WIFI_PASS: "your_wifi_pass"
+
+  INPUT_GPIO_PIN: 48
+
+  # INPUT, INPUT_PULLUP, INPUT_PULLUP
+  INPUT_MODE: INPUT
+
+# Optional confiuration, change them if you know what you're doing...
+Optional:
+  # Enable debug output to Serial port
+  # (Uncomment to turn on)
+  #DEBUG:
+
+  # Disable WiFi sleep
+  # (Uncomment to turn on)
+  #WIFI_DISABLE_SLEEP:
+
+  # Delay between packets sent to server
+  ACTION_DELAY: 3000
+
+  # Device and Server UDP_PORT, 5051 is default for JavaHomeServer
+  UDP_PORT: 5051
+
+  # Settings for OTA updates, 3232:admin are defaults for JavaHomeServer
+  # Comment ENABLE_OTA to disable OTA updates
+  ENABLE_OTA:
+  OTA_PORT: 3232
+  OTA_PASSWORD: "admin"
+
+DEVICE_TYPE: "BasicSensor"
