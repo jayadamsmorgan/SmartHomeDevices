@@ -1,5 +1,4 @@
 import yaml
-import os
 Import("env")
 
 print()
